@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Database Mock Exam MCQ Platform</title>
+  <style>
+    :root { color-scheme: light; }
+    body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #000; background: #f5f5f5; }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px 80px; }
+    header, .panel, .question, .result { background: #fff; border: 1px solid #d8d8d8; }
+    header { padding: 22px; margin-bottom: 14px; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    p { line-height: 1.5; }
+    .panel { padding: 14px; margin-bottom: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    select, button { font: inherit; padding: 9px 12px; border: 1px solid #999; background: #fff; color: #000; }
+    button { cursor: pointer; }
+    button.primary { background: #000; color: #fff; }
+    .question { padding: 16px; margin: 12px 0; }
+    .meta { font-size: 13px; margin-bottom: 8px; color: #333; }
+    h2 { margin: 0 0 12px; font-size: 18px; line-height: 1.35; }
+    label { display: block; border: 1px solid #e0e0e0; padding: 9px 10px; margin: 7px 0; cursor: pointer; line-height: 1.35; }
+    label:hover { background: #fafafa; }
+    .feedback { margin-top: 8px; font-weight: bold; }
+    .correct { color: #087028; }
+    .wrong { color: #a00000; }
+    .sticky { position: sticky; bottom: 0; z-index: 2; border-top: 1px solid #ccc; background: #fff; padding: 12px 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .score { font-size: 18px; font-weight: bold; }
+    .answer-key { white-space: pre-wrap; font-family: Arial, Helvetica, sans-serif; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Database Systems Mock Exam - MCQ Practice</h1>
+    <p>Choose one of 10 mock sets. Each set has 20 single-choice questions. Each question is worth 1 point. Click <b>Submit and Grade</b> to get your score.</p>
+  </header>
+
+  <section class="panel">
+    <label for="setSelect"><b>Mock Set</b></label>
+    <select id="setSelect"></select>
+    <button type="button" onclick="loadSet()">Load Set</button>
+    <button type="button" onclick="showAnswers()">Show Answer Key</button>
+  </section>
+
+  <form id="quiz"></form>
+
+  <div class="sticky">
+    <button class="primary" type="button" onclick="grade()">Submit and Grade</button>
+    <button type="button" onclick="resetSet()">Reset Current Set</button>
+    <span class="score" id="score"></span>
+  </div>
+</div>
+
+<script>
+const sets = [
+[
+["Why Databases","Which is the best reason to use a DBMS instead of many separate files?",["It removes the need for data modeling","It supports shared data, controlled redundancy, query processing, and recovery","It makes every query run in O(1) time","It stores all data only in memory"],1],
+["Relational Model","In the relational model, a tuple is best described as:",["A row in a relation","A column name","A database schema only","A foreign key constraint"],0],
+["Relational Algebra","Which operation returns only selected columns from a relation?",["Selection","Projection","Union","Difference"],1],
+["SQL","Which clause filters rows before grouping?",["HAVING","ORDER BY","WHERE","GROUP BY"],2],
+["Schemas and Views","A database view is mainly used to:",["Create a user-specific query-based representation","Force all data to be duplicated","Remove the conceptual schema","Replace every base table"],0],
+["JDBC","A ResultSet in JDBC usually represents:",["A database connection string","Rows returned by a query","A physical disk block","A table definition command"],1],
+["Normalization","1NF mainly requires that attribute values are:",["Atomic","Always unique","Always foreign keys","Sorted"],0],
+["2NF","A partial dependency is a problem mainly when:",["A relation has a composite key","A relation has no attributes","There are no candidate keys","The table is already BCNF"],0],
+["3NF/BCNF","BCNF requires that every non-trivial determinant is:",["A foreign key","A superkey","A nullable attribute","A weak entity"],1],
+["ER Model","A weak entity depends on:",["A view","An owner entity","A SQL trigger","A hash bucket"],1],
+["Files","A disk block is:",["A unit transferred between disk and memory","A SQL predicate","An ER relationship","A JDBC object"],0],
+["File Organization","A heap file is usually best for:",["Keeping records sorted by key","Fast insertion when no order is required","Range search on every attribute","Avoiding all disk access"],1],
+["Secondary Indexes","A secondary index is built on:",["Only the ordering key","An attribute that is not necessarily the file ordering key","Only the block size","Only a transaction id"],1],
+["Dense Index","A dense index has an entry for:",["Every search-key value or record","Only the first block","Only deleted records","No data pointer"],0],
+["B+ Trees","In a B+ tree, leaf nodes are often linked to support:",["Range queries","Deadlock detection","JDBC loading","View deletion"],0],
+["B+ Trees","When a B+ tree node overflows, the usual action is:",["Split the node","Drop the database","Ignore the key","Convert to SQL"],0],
+["Hashing","Hashing is most suitable for:",["Exact-match search","Long range search","Sorting all records","Finding all foreign keys"],0],
+["Transactions","Atomicity means:",["All-or-nothing execution","No indexes are used","All rows are sorted","All locks are shared"],0],
+["Concurrency","Two-phase locking has:",["A growing phase and a shrinking phase","Only one lock per database","No unlock operation","No waiting"],0],
+["Locking","An exclusive lock conflicts with:",["A shared lock on the same item","No lock","A committed transaction only","A table name"],0]
+],
+[
+["Why Databases","Which DBMS feature helps protect data after a system crash?",["Recovery management","Projection","ER specialization","Tuple rename"],0],
+["Relational Model","A relation schema specifies:",["Relation name and attributes","Only current row count","Only disk address","Only user password"],0],
+["Relational Algebra","Which operation combines tuples from two relations in all possible pairs?",["Cartesian product","Selection","Projection","Rename"],0],
+["SQL","COUNT(*) returns:",["The number of rows in a group or result","Only non-null primary keys","Only distinct values","The number of schemas"],0],
+["Schemas and Views","Physical data independence means changes in physical storage should not require changes to:",["Application-level logical views","Disk hardware only","The DBMS vendor name","All data values"],0],
+["JDBC","Which JDBC step usually comes before executing SQL?",["Establish a connection","Read a B+ tree leaf","Commit another user's transaction","Split a hash bucket"],0],
+["Normalization","A functional dependency X -> Y means:",["X values determine Y values","Y is always a foreign key","X and Y must be the same attribute","The table has no key"],0],
+["2NF","2NF removes:",["Partial dependency on part of a composite key","Every transitive dependency only","Every multivalued dependency only","All candidate keys"],0],
+["3NF/BCNF","3NF is designed mainly to reduce:",["Update anomalies caused by dependencies","Disk block size","SQL keyword length","JDBC driver count"],0],
+["ER Model","A relationship set represents:",["Associations among entity sets","Only table indexes","Only SQL views","Only physical files"],0],
+["Files","Blocking factor means:",["How many records fit in one block","How many users hold locks","How many views a table has","How many SQL clauses exist"],0],
+["File Organization","A sorted file is inefficient for:",["Maintaining order after many insertions","Range queries on the sort key","Sequential scan in key order","Binary search on sort key"],0],
+["Secondary Indexes","An index entry normally stores:",["A search key and pointer","A SQL password","A JDBC driver","Only a page title"],0],
+["Sparse Index","A sparse index is possible when:",["The data file is ordered on the search key","The file has no records","Every attribute is nullable","All transactions are aborted"],0],
+["B+ Trees","The height of a B+ tree is usually small because:",["Nodes have high fan-out","Every node stores only one key","It never changes after insertion","It stores no pointers"],0],
+["B+ Trees","In a B+ tree, actual data entries are typically found at:",["Leaf level","Only root level","Only deleted pages","Only SQL views"],0],
+["Hashing","A bucket overflow can occur when:",["Too many records hash to the same bucket","A relation is in BCNF","A query uses GROUP BY","A view is created"],0],
+["Transactions","Durability means committed changes:",["Survive failures","Never use disk","Are always private","Can be ignored by recovery"],0],
+["Concurrency","A serial schedule executes transactions:",["One after another without interleaving","Only with shared locks","Only after deadlock","Only in reverse timestamp order"],0],
+["Locking","A shared lock is normally used for:",["Read operations","Write-only operations","Deleting the catalog","Splitting indexes"],0]
+],
+[
+["Why Databases","Controlled redundancy is useful because it:",["Reduces inconsistency compared with uncontrolled duplicated files","Forces every table to be duplicated","Removes all constraints","Makes normalization impossible"],0],
+["Relational Model","A candidate key is:",["A minimal set of attributes that uniquely identifies tuples","Any nullable attribute","Only a foreign key","A duplicate row"],0],
+["Relational Algebra","Union compatibility requires relations to have:",["Same number of attributes with compatible domains","Same physical file size","Same lock mode","Same JDBC driver"],0],
+["SQL","Which aggregate ignores NULL values in most SQL systems?",["AVG(attribute)","COUNT(*)","CREATE TABLE","ORDER BY"],0],
+["Schemas and Views","The external schema is closest to:",["A user's view of the database","The disk block layout","The hash function","The lock table only"],0],
+["JDBC","PreparedStatement is useful because it:",["Can parameterize SQL and reduce repeated parsing","Stores disk blocks","Defines ER diagrams","Normalizes tables automatically"],0],
+["Normalization","An insertion anomaly may happen when:",["Facts cannot be inserted without unrelated facts","All keys are valid","A B+ tree splits","A transaction commits"],0],
+["2NF","A relation with a single-attribute candidate key is automatically free from:",["Partial dependency on a composite key","Transitive dependencies","All anomalies","All foreign keys"],0],
+["3NF/BCNF","If X -> Y and X is not a superkey, BCNF may be violated when:",["The dependency is non-trivial","The relation has no tuples","Y is empty only","X is a block id"],0],
+["ER Model","A multivalued attribute is usually mapped into:",["A separate relation","A single fixed integer only","A lock mode","A JDBC connection"],0],
+["Files","A record pointer is used to:",["Locate a record or block","Filter SQL groups","Define a weak entity","Declare a schema"],0],
+["File Organization","Sequential access is naturally supported by:",["Sorted files","Random heap-only scans","Deadlock graphs","JDBC metadata"],0],
+["Secondary Indexes","A clustering index is related to:",["The physical ordering of records","Only user passwords","Only SQL HAVING","Only recovery logs"],0],
+["Dense Index","Dense indexes are often larger than sparse indexes because they:",["Have more entries","Have no search keys","Never store pointers","Can only index views"],0],
+["B+ Trees","Searching in a B+ tree starts at:",["The root","A random deleted node","The JDBC driver","The transaction log tail"],0],
+["B+ Trees","A separator key in an internal B+ tree node helps choose:",["Which child pointer to follow","Which transaction to abort","Which SQL view to hide","Which tuple is NULL"],0],
+["Hashing","A good hash function should:",["Distribute keys evenly among buckets","Map all keys to bucket zero","Sort all keys","Prevent every insert"],0],
+["Transactions","Isolation means:",["Concurrent transactions should not interfere incorrectly","Committed data is lost after crash","All tables are views","No data can be read"],0],
+["Concurrency","Conflict operations are from different transactions on the same item where:",["At least one operation is a write","Both are reads only","Both are commits","Neither accesses data"],0],
+["Locking","Deadlock can happen when:",["Transactions wait for each other's locks in a cycle","All transactions are serial","No locks are used","Only one transaction exists"],0]
+],
+[
+["Why Databases","A data dictionary/catalog stores:",["Metadata about schemas, tables, and constraints","Only user essays","Only application screenshots","Only compiled Java bytecode"],0],
+["Relational Model","Entity integrity requires primary key values to be:",["Non-null","Always foreign keys","Always strings","Always sorted"],0],
+["Relational Algebra","Set difference R - S returns:",["Tuples in R but not in S","All pairs from R and S","Only columns in S","Only duplicate tuples"],0],
+["SQL","Which command changes data already stored in a table?",["UPDATE","CREATE VIEW","SELECT only","GRANT only"],0],
+["Schemas and Views","Logical data independence means changes to conceptual schema should minimally affect:",["External schemas and applications","Disk sector size","CPU cache","Hash bucket count"],0],
+["JDBC","Which method is commonly used to execute a SELECT query?",["executeQuery","normalizeTable","splitNode","lockRecordOnly"],0],
+["Normalization","A transitive dependency often has the form:",["Key -> non-key -> non-key","Key -> key only","Block -> disk","View -> driver"],0],
+["2NF","2NF is relevant after a relation already satisfies:",["1NF","BCNF only","Hashing only","Two-phase locking only"],0],
+["3NF/BCNF","BCNF is generally:",["Stronger than 3NF","Weaker than 1NF","Unrelated to dependencies","Only for ER diagrams"],0],
+["ER Model","Cardinality constraints describe:",["How many entities may participate in a relationship","How many bytes are in a block","How many JDBC drivers exist","How many locks are deadlocked"],0],
+["Files","Heap file search by a non-indexed value may require:",["Linear scan","Immediate root split","No disk access","Only reading metadata"],0],
+["File Organization","A hashed file stores records based on:",["A hash function on a search key","Alphabetical order only","Creation time only","Transaction timestamp only"],0],
+["Secondary Indexes","If many records have the same secondary key, an index may point to:",["A bucket/list of record pointers","Only one impossible record","A SQL keyword","A lock mode"],0],
+["Indexing","Primary index is usually built on:",["The ordering key of an ordered file","A random non-key only","The JDBC URL","A view name"],0],
+["B+ Trees","Range search in B+ trees is efficient because:",["Leaves are ordered and linked","Locks are never needed","Keys are random","No pointer is stored"],0],
+["B+ Trees","Deleting from a B+ tree may require:",["Redistribution or merging","Creating a weak entity","Dropping SQL","Starting JDBC"],0],
+["Hashing","Static hashing can suffer when the file grows because:",["Overflow chains may become long","BCNF becomes impossible","Views disappear","All keys become NULL"],0],
+["Transactions","Consistency means a transaction should take the database:",["From one valid state to another valid state","From SQL to Java only","From disk to no disk","From sorted to unsorted always"],0],
+["Concurrency","A precedence graph is used to test:",["Conflict serializability","JDBC syntax","ER participation","Hash function quality"],0],
+["Locking","An exclusive lock is normally needed for:",["Writing a data item","Reading only without change","Viewing metadata only","Declaring a relation name"],0]
+],
+[
+["Why Databases","Data inconsistency is likely when:",["The same fact is stored separately and updated differently","All constraints are checked","Transactions are logged","Views are defined"],0],
+["Relational Model","A domain is:",["The set of allowed values for an attribute","A transaction schedule","A disk pointer","A Java package only"],0],
+["Relational Algebra","Rename operation is useful to:",["Avoid ambiguity and give relation/attribute names","Delete all tuples","Sort records physically","Commit transactions"],0],
+["SQL","Which keyword removes duplicate rows from a SELECT result?",["DISTINCT","HAVING","FOREIGN","LOCK"],0],
+["Schemas and Views","A view can improve security by:",["Showing only selected columns or rows","Disabling all constraints","Removing authentication","Forcing public access"],0],
+["JDBC","A database connection in JDBC is represented by:",["Connection","Relation","Bucket","Schedule"],0],
+["Normalization","A deletion anomaly occurs when deleting one fact also loses:",["Another fact that should have been kept","A hash function","A lock mode","A Java class"],0],
+["2NF","If (A,B) is a key and A -> C, then C has:",["A partial dependency","A superkey dependency","No dependency","A block dependency"],0],
+["3NF/BCNF","3NF allows some dependency X -> A where X is not superkey if A is:",["Prime attribute","Always NULL","Disk pointer","Hash bucket"],0],
+["ER Model","An identifying relationship is most related to:",["Weak entity identification","Hash collision","View update","Lock compatibility"],0],
+["Files","A spanned record means:",["A record may cross block boundaries","A record is always deleted","A record has no fields","A record is a SQL view"],0],
+["File Organization","Unspanned organization requires:",["Each record fits within one block","Every table is sorted","Every transaction is serial","No indexes exist"],0],
+["Secondary Indexes","Indexes improve search but usually add cost to:",["Insertions, deletions, and updates","Reading SQL keywords","Drawing ER diagrams","Opening a PDF"],0],
+["Indexing","A multi-level index reduces search cost by:",["Indexing the index","Removing all keys","Storing no pointers","Disabling disk access"],0],
+["B+ Trees","B+ tree balance means:",["All root-to-leaf paths have the same length","Leaves are randomly located","Only the root has data","There are no internal nodes"],0],
+["B+ Trees","Fan-out refers to:",["Number of child pointers a node can have","Number of SQL users only","Number of deadlocks","Number of JDBC exceptions"],0],
+["Hashing","Extendible hashing uses:",["A directory and bucket splitting","Only one fixed bucket forever","A B+ tree leaf chain","A view definition"],0],
+["Transactions","A dirty read reads data written by:",["An uncommitted transaction","A committed backup only","A database catalog","A deleted schema"],0],
+["Concurrency","Recoverable schedule requires that:",["A transaction commits only after transactions it read from have committed","All reads happen after all commits","No writes occur","All locks are shared"],0],
+["Locking","Strict 2PL holds exclusive locks until:",["Commit or abort","Before the first read","Before acquiring any lock","Before the transaction starts"],0]
+],
+[
+["Why Databases","Program-data independence means:",["Programs are less affected by changes in data storage/structure","Programs directly edit disk sectors","Data has no schema","SQL is not needed"],0],
+["Relational Model","A superkey is:",["Any attribute set that uniquely identifies tuples","Only the shortest key","Only a foreign key","A duplicate tuple"],0],
+["Relational Algebra","Join can be understood as selection over:",["Cartesian product","Projection only","Union only","Difference only"],0],
+["SQL","A foreign key declaration mainly enforces:",["Referential integrity","Deadlock prevention","Hash distribution","View materialization"],0],
+["Schemas and Views","The conceptual schema describes:",["The overall logical structure of the database","Only one user's view","Only physical sectors","Only Java code"],0],
+["JDBC","Closing JDBC resources is important because it:",["Releases database and system resources","Normalizes schemas","Creates weak entities","Sorts files automatically"],0],
+["Normalization","A functional dependency is about:",["Relationships between attribute values","Disk block size only","User interface colors","Lock duration only"],0],
+["2NF","2NF mainly applies to relations with:",["Composite candidate keys","No keys","Only one tuple","Only views"],0],
+["3NF/BCNF","Lossless decomposition means:",["Natural join of decomposed relations can reconstruct original relation","Every dependency is lost","All data is duplicated","Indexes are removed"],0],
+["ER Model","Specialization/generalization models:",["Subclass-superclass relationships","Hash overflow only","Transaction commit order","Physical block layout"],0],
+["Files","The cost of disk I/O is important because:",["Disk access is much slower than memory access","SQL has no syntax","ER diagrams are optional","Views cannot be queried"],0],
+["File Organization","Ordered files are good for:",["Range queries on ordering attribute","Random writes only","Removing all indexes","Preventing transactions"],0],
+["Secondary Indexes","A non-clustering secondary index may require:",["Extra random I/O to fetch records","No pointer lookup","Only one disk access always","No storage space"],0],
+["Indexing","An index is similar in purpose to:",["A book index for finding information faster","A transaction abort command","An ER diamond","A Java loop"],0],
+["B+ Trees","Insertion in a B+ tree preserves:",["Sorted search order and balance","Deadlocks","Duplicate schemas","Only heap order"],0],
+["B+ Trees","Internal B+ tree nodes store:",["Search keys and child pointers","Only full records always","Only SQL statements","Only lock requests"],0],
+["Hashing","Linear hashing grows by:",["Splitting buckets gradually","Doubling only after every search","Never changing file size","Sorting all records"],0],
+["Transactions","A transaction log is used mainly for:",["Recovery","ER modeling","SQL projection","View authorization only"],0],
+["Concurrency","Lost update occurs when:",["One write overwrites another transaction's update incorrectly","A view hides a column","A B+ tree splits","A JDBC query returns no rows"],0],
+["Locking","Lock compatibility matrix tells:",["Which lock modes can be held together","Which attributes are keys","Which files are sorted","Which queries use HAVING"],0]
+],
+[
+["Why Databases","Which is a disadvantage of file processing systems compared with DBMS?",["Data isolation and difficult access","Support for SQL","Transaction recovery","Data independence"],0],
+["Relational Model","A primary key is chosen from:",["Candidate keys","All non-keys only","Only NULL attributes","Only foreign keys"],0],
+["Relational Algebra","Intersection can be derived using:",["Difference","Hashing","Locking","JDBC"],0],
+["SQL","GROUP BY is used to:",["Form groups for aggregate computation","Sort disk blocks only","Create a weak entity","Lock all tables"],0],
+["Schemas and Views","A materialized view differs because it:",["Stores query results physically","Can never be queried","Has no schema","Is always a lock"],0],
+["JDBC","SQLException is used for:",["Database access errors","ER participation","B+ tree fan-out","Normalization proof"],0],
+["Normalization","A key dependency is important because it helps identify:",["Redundancy and anomalies","Only physical memory","Only Java code","Only UI layout"],0],
+["2NF","A relation violates 2NF when a non-prime attribute depends on:",["Part of a candidate key","The whole key only","A superkey only","No attribute"],0],
+["3NF/BCNF","Dependency preservation means:",["Constraints can be checked on decomposed relations without full join","All dependencies are deleted","Only indexes are preserved","Only views are preserved"],0],
+["ER Model","Total participation means:",["Every entity in an entity set must participate in the relationship","No entity can participate","Only one entity participates","Participation depends on hash value"],0],
+["Files","Fixed-length records are simpler because:",["Field positions can be calculated more easily","Every field is a view","No indexing can be used","Transactions are impossible"],0],
+["File Organization","Variable-length records may need:",["Special record headers or offsets","No storage","No schema","Only one attribute"],0],
+["Secondary Indexes","Indexes are stored as:",["Auxiliary access structures","Only SQL comments","Only transaction schedules","Only ER attributes"],0],
+["Indexing","A search key of an index is:",["Attribute(s) used to look up records","Always the primary key only","A disk password","A Java keyword"],0],
+["B+ Trees","B+ trees support dynamic file growth because:",["They split and remain balanced","They never insert new keys","They require sorted heap only","They avoid pointers"],0],
+["B+ Trees","A B+ tree root split may:",["Increase tree height","Delete all leaves","Remove all keys","Commit a transaction"],0],
+["Hashing","Hash index performance depends heavily on:",["Hash function and overflow handling","3NF only","ER notation","SQL capitalization"],0],
+["Transactions","Commit means:",["Make transaction changes permanent","Undo all changes","Start a B+ tree split","Create a weak entity"],0],
+["Concurrency","A non-serial schedule can still be correct if it is:",["Serializable","Unrecoverable","Always dirty","Without reads"],0],
+["Locking","Shared locks allow:",["Multiple readers on the same item","Multiple writers always","No read operation","Only aborted transactions"],0]
+],
+[
+["Why Databases","A DBMS query processor is responsible for:",["Parsing, optimizing, and executing queries","Drawing all ER diagrams by hand","Physically breaking every disk","Writing Java GUIs only"],0],
+["Relational Model","Referential integrity involves:",["Foreign key and referenced key","Only duplicate removal","Only views","Only hash buckets"],0],
+["Relational Algebra","Projection may remove duplicate tuples because relations are:",["Sets","Files only","Schedules","B+ tree nodes"],0],
+["SQL","ORDER BY is used to:",["Sort the query result","Filter groups","Define a weak entity","Commit a transaction"],0],
+["Schemas and Views","A view definition is usually stored as:",["A query expression in the catalog","A random transaction","A fixed disk address only","A deadlock cycle"],0],
+["JDBC","DriverManager is commonly used to:",["Obtain a database connection","Split a B+ tree","Find a weak entity owner","Compute BCNF"],0],
+["Normalization","Redundancy can cause:",["Update, insertion, and deletion anomalies","Only faster queries","No storage cost","Better consistency always"],0],
+["2NF","A non-prime attribute is:",["Not part of any candidate key","Always the primary key","Always a foreign key","A hash pointer"],0],
+["3NF/BCNF","BCNF decomposition may fail to preserve:",["Some dependencies","All tuples","All schemas","Every index pointer"],0],
+["ER Model","An attribute of a relationship describes:",["Information about the association itself","Only an entity key","Only a disk block","Only a lock mode"],0],
+["Files","A file header may store:",["Metadata such as record count or free space pointer","Only SQL SELECT clauses","Only Java exceptions","Only answer keys"],0],
+["File Organization","Free space management helps:",["Find space for new records","Create relational algebra","Enforce 3NF only","Prevent all deadlocks"],0],
+["Secondary Indexes","A secondary index on non-key attribute may have:",["Duplicate search-key values","No entries","Only one tuple total","No pointers"],0],
+["Indexing","An index can speed up search but consumes:",["Extra storage","No memory","No disk","No CPU"],0],
+["B+ Trees","B+ tree nodes are usually sized to match:",["Disk blocks/pages","SQL keywords","ER attributes","JDBC exceptions"],0],
+["B+ Trees","A B+ tree is preferred over a binary search tree on disk because:",["It has high fan-out and fewer I/Os","It has one key per node","It ignores ordering","It cannot split"],0],
+["Hashing","Range queries are usually poor on hash indexes because:",["Hashing destroys key order","Hashing stores all keys sorted","Buckets are linked by range","SQL forbids range predicates"],0],
+["Transactions","Rollback means:",["Undo a transaction's effects","Make changes permanent","Create an index","Define a view"],0],
+["Concurrency","Cascading rollback can happen when:",["Transactions read uncommitted data from another transaction","All schedules are serial","No transaction reads","Only shared locks exist"],0],
+["Locking","Lock granularity refers to:",["Size of locked item, such as row, page, or table","Number of SQL clauses","Length of Java code","Size of answer key"],0]
+],
+[
+["Why Databases","Which DBMS component handles authorization and access control?",["Security manager","Projection operator","Hash bucket","B+ tree leaf only"],0],
+["Relational Model","A foreign key may reference:",["A candidate/primary key in another or same relation","Only a non-existing table","Only a disk block","Only a Java object"],0],
+["Relational Algebra","Natural join automatically matches:",["Attributes with the same name","Only primary keys called ID","Only foreign keys declared in SQL","Only disk pages"],0],
+["SQL","Which condition belongs in HAVING rather than WHERE?",["COUNT(*) > 5 after grouping","name = 'Ann' before grouping","salary > 100 before grouping","id = 3 before grouping"],0],
+["Schemas and Views","View update can be difficult because:",["One view tuple may not map clearly to one base tuple","Views cannot be queried","Views are not schemas","Views always lack columns"],0],
+["JDBC","Parameterized SQL helps avoid:",["SQL injection and repeated string concatenation","B+ tree splitting","3NF violation only","Disk formatting"],0],
+["Normalization","A determinant is:",["The left side of a functional dependency","A tuple id","A Java exception","A lock request"],0],
+["2NF","If a table has key (Student, Course) and Student -> StudentName, then StudentName is:",["Partially dependent on the key","A superkey","A hash value","A view only"],0],
+["3NF/BCNF","A prime attribute is:",["An attribute that is part of some candidate key","Any non-key attribute","A disk pointer","A lock type"],0],
+["ER Model","A composite attribute is:",["Made of smaller subattributes","Always multivalued","Always a primary key","Always a relationship"],0],
+["Files","Slotted pages are useful for:",["Managing variable-length records inside a page","SQL grouping","Deadlock prevention","View creation"],0],
+["File Organization","A file scan reads:",["Many or all records sequentially","Only B+ tree root","Only lock table","Only JDBC driver"],0],
+["Secondary Indexes","Index maintenance happens when:",["Indexed attributes are inserted, deleted, or updated","Only SELECT is written","Only ER model changes","Only PDF opens"],0],
+["Indexing","Clustering can improve:",["Range retrieval and locality","SQL injection","Deadlock rate","JDBC syntax"],0],
+["B+ Trees","Minimum occupancy rules help keep B+ trees:",["Balanced and space-efficient","Unsorted","Without leaves","Without root"],0],
+["B+ Trees","A leaf split in B+ tree usually copies/promotes:",["A separator key to parent","All records to root only","A lock mode to catalog","A JDBC URL"],0],
+["Hashing","Directory doubling appears in:",["Extendible hashing","Static heap files","ER diagrams","2PL only"],0],
+["Transactions","A schedule is a sequence of:",["Operations from one or more transactions","Only ER attributes","Only SQL table names","Only disk sectors"],0],
+["Concurrency","View serializability is generally:",["More general than conflict serializability","Exactly the same as 1NF","Only for SQL views","Only for hash indexes"],0],
+["Locking","Intention locks are mainly used with:",["Multiple granularity locking","Only single-row systems","Only JDBC","Only ER diagrams"],0]
+],
+[
+["Why Databases","One advantage of declarative SQL is that users specify:",["What result they want, not exactly how to get it","Every disk head movement","Every lock wait time","Every Java bytecode instruction"],0],
+["Relational Model","Two relations can have the same schema but different:",["Instances","Attribute names","Domains always","Primary key definition always"],0],
+["Relational Algebra","Selection and projection together can express:",["Filtering rows and choosing columns","Only transaction recovery","Only deadlock detection","Only physical hashing"],0],
+["SQL","A subquery is:",["A query nested inside another query","A disk block","A weak entity","A lock type"],0],
+["Schemas and Views","The internal schema is closest to:",["Physical storage structures","User interface forms","Only ER relationships","Only JDBC code"],0],
+["JDBC","Autocommit mode means:",["Each statement may commit automatically unless disabled","No SQL can run","All queries are rolled back","Indexes are deleted"],0],
+["Normalization","Normalization is mainly used to design tables with:",["Less redundancy and fewer anomalies","Maximum duplicated data","No constraints","No keys"],0],
+["2NF","A relation not in 2NF can often be improved by:",["Decomposing to remove partial dependencies","Adding random duplicate columns","Removing all keys","Using only hash indexes"],0],
+["3NF/BCNF","A decomposition should preferably be:",["Lossless and dependency-preserving when possible","Always lossy","Without keys","Only physical"],0],
+["ER Model","Mapping a many-to-many relationship usually creates:",["A separate relation containing participating keys","Only one column in one entity table","A hash bucket","A lock table"],0],
+["Files","The buffer manager manages:",["Pages in main memory between disk and query processing","SQL grammar only","JDBC exceptions only","ER notation only"],0],
+["File Organization","Deleting records may create:",["Free space that should be managed","New candidate keys automatically","JDBC connections","Functional dependencies"],0],
+["Secondary Indexes","A covering index can answer a query when:",["All needed attributes are in the index","No attributes are indexed","The table has no rows","All transactions abort"],0],
+["Indexing","Choosing an index depends on:",["Query workload and update cost","Only table name length","Only font size","Only ER diagram color"],0],
+["B+ Trees","B+ tree lookup cost is roughly proportional to:",["Tree height","Number of SQL keywords","Number of schemas only","Number of users only"],0],
+["B+ Trees","B+ tree leaves contain:",["Search-key entries in sorted order","Only transaction ids","Only SQL views","Only lock modes"],0],
+["Hashing","A hash search computes:",["The bucket address from the search key","The BCNF decomposition","The SQL view name","The lock compatibility table"],0],
+["Transactions","ACID stands for atomicity, consistency, isolation, and:",["Durability","Dependency","Division","Directory"],0],
+["Concurrency","A schedule with no interleaving is:",["Serial","Dirty","Deadlocked","Unrecoverable always"],0],
+["Locking","Unlocking too early under 2PL can break:",["Serializability guarantee","JDBC syntax","ER cardinality","Hash distribution"],0]
+]
+];
+</script>
+
+<script>
+const letters = ["A", "B", "C", "D"];
+const setSelect = document.getElementById("setSelect");
+sets.forEach((_, i) => {
+  const opt = document.createElement("option");
+  opt.value = String(i);
+  opt.textContent = `Set ${i + 1}`;
+  setSelect.appendChild(opt);
+});
+
+function currentSet() {
+  return sets[Number(setSelect.value)];
+}
+
+function loadSet() {
+  const quiz = document.getElementById("quiz");
+  quiz.innerHTML = "";
+  document.getElementById("score").textContent = "";
+  currentSet().forEach((item, idx) => {
+    const [topic, question, options] = item;
+    const section = document.createElement("section");
+    section.className = "question";
+    section.innerHTML = `
+      <div class="meta">Set ${Number(setSelect.value) + 1} · Question ${idx + 1} · ${topic} · 1 point</div>
+      <h2>${escapeHtml(question)}</h2>
+      <div class="options">
+        ${options.map((op, i) => `
+          <label><input type="radio" name="q${idx}" value="${i}"> ${letters[i]}. ${escapeHtml(op)}</label>
+        `).join("")}
+      </div>
+      <div class="feedback" id="f${idx}"></div>
+    `;
+    quiz.appendChild(section);
+  });
+}
+
+function grade() {
+  let score = 0;
+  currentSet().forEach((item, idx) => {
+    const answer = item[3];
+    const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+    const fb = document.getElementById(`f${idx}`);
+    if (selected && Number(selected.value) === answer) {
+      score += 1;
+      fb.textContent = "Correct.";
+      fb.className = "feedback correct";
+    } else {
+      fb.textContent = `Wrong. Correct answer: ${letters[answer]}. ${item[2][answer]}`;
+      fb.className = "feedback wrong";
+    }
+  });
+  document.getElementById("score").textContent = `Score: ${score} / 20`;
+  window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+}
+
+function showAnswers() {
+  currentSet().forEach((item, idx) => {
+    const answer = item[3];
+    const fb = document.getElementById(`f${idx}`);
+    if (fb) {
+      fb.textContent = `Answer: ${letters[answer]}. ${item[2][answer]}`;
+      fb.className = "feedback";
+    }
+  });
+}
+
+function resetSet() {
+  loadSet();
+}
+
+function escapeHtml(str) {
+  return str.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+loadSet();
+</script>
+</body>
+</html>
