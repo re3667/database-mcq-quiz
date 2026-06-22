@@ -91,6 +91,189 @@ const shortSets = [
   ]
 ];
 
+const compSets = [
+  [
+    {
+      topic: "B+ Tree Index Analysis",
+      caseText: "A STUDENT file has 80,000 records and a B+ tree index on StudentID. Leaf nodes are linked. Common queries are exact lookup by StudentID and range lookup for StudentID between 20000 and 26000.",
+      subs: [
+        ["Explain how the B+ tree handles exact search and range search.", 8, ["root", "internal", "leaf", "range", "linked leaves", "studentid"], "Exact search starts at the root, follows separator keys through internal nodes, and reaches the target leaf. Range search first finds the starting key in a leaf, then scans linked leaves in sorted key order until the upper bound is passed."],
+        ["Why is a B+ tree better than a hash index for the range query?", 7, ["b+ tree", "range", "ordered", "hash", "bucket"], "A B+ tree keeps keys ordered at the leaf level, so range scanning is efficient. A hash index maps keys to buckets and does not preserve order, so it is mainly suitable for exact-match lookup."]
+      ]
+    },
+    {
+      topic: "ER Model and Mapping",
+      caseText: "A university has STUDENT, COURSE, and INSTRUCTOR. Students enroll in many courses; each course has many students. Each course is taught by one instructor, and one instructor can teach many courses.",
+      subs: [
+        ["Draw or describe the ER relationships and cardinalities.", 8, ["student", "course", "instructor", "many-to-many", "one-to-many", "enroll"], "STUDENT and COURSE have a many-to-many relationship ENROLL. INSTRUCTOR and COURSE have a one-to-many relationship: one instructor teaches many courses, and each course has one instructor."],
+        ["Map the ER model into relations with primary keys and foreign keys.", 7, ["student", "course", "instructor", "enroll", "primary key", "foreign key"], "Use STUDENT(SID, ...), INSTRUCTOR(IID, ...), COURSE(CourseID, ..., IID), and ENROLL(SID, CourseID, Grade). COURSE.IID references INSTRUCTOR. ENROLL.SID references STUDENT and ENROLL.CourseID references COURSE; (SID, CourseID) can be the primary key of ENROLL."]
+      ]
+    }
+  ],
+  [
+    {
+      topic: "B-Tree vs B+ Tree",
+      caseText: "A database designer is choosing between a B-tree and a B+ tree for an index on ProductID. The workload has exact searches and frequent ordered scans over ProductID ranges.",
+      subs: [
+        ["Compare B-tree and B+ tree structure for database indexing.", 8, ["b-tree", "b+ tree", "internal", "leaf", "data entries"], "In a B-tree, search keys and data pointers may appear in internal nodes and leaves. In a B+ tree, internal nodes mainly guide search, while data entries are stored at the leaf level. This makes leaf-level scans simpler."],
+        ["Choose the better structure for ordered range scans and justify.", 7, ["b+ tree", "linked leaves", "range scan", "ordered", "leaf"], "A B+ tree is usually better for ordered range scans because all data entries are at ordered linked leaves. After finding the first key, the system can scan leaf nodes sequentially."]
+      ]
+    },
+    {
+      topic: "Weak Entity ER Mapping",
+      caseText: "A library stores BOOK(BookID, Title) and COPY(CopyNo, Shelf). CopyNo is unique only within the same book. Members borrow copies.",
+      subs: [
+        ["Explain why COPY is a weak entity and identify its owner and partial key.", 8, ["weak entity", "book", "owner", "partial key", "copyno"], "COPY is weak because CopyNo alone is not globally unique. BOOK is the owner entity, and CopyNo is the partial key. A copy is identified by BookID plus CopyNo."],
+        ["Map BOOK, COPY, MEMBER, and LOAN into relations.", 7, ["book", "copy", "member", "loan", "foreign key", "primary key"], "BOOK(BookID, Title). COPY(BookID, CopyNo, Shelf) with primary key (BookID, CopyNo) and BookID as foreign key. MEMBER(MemberID, ...). LOAN(MemberID, BookID, CopyNo, LoanDate, ReturnDate) references MEMBER and COPY."]
+      ]
+    }
+  ],
+  [
+    {
+      topic: "B+ Tree Insertion",
+      caseText: "A B+ tree leaf node is full. A new search key must be inserted into this leaf. The parent may also become full after receiving the separator key.",
+      subs: [
+        ["Describe the insertion steps when the leaf overflows.", 8, ["insert", "overflow", "split", "leaf", "separator"], "Insert the key in sorted order, split the overflowing leaf into two leaves, redistribute entries, keep leaf links correct, and copy/promote a separator key to the parent."],
+        ["Explain what happens if the parent also overflows.", 7, ["parent", "overflow", "split", "propagate", "root"], "If the parent overflows, it is also split and a separator key is propagated upward. If the root splits, a new root is created and the tree height increases by one."]
+      ]
+    },
+    {
+      topic: "ER Constraints",
+      caseText: "A hospital database has PATIENT, DOCTOR, APPOINTMENT, and PRESCRIPTION. A patient can have many appointments. Each appointment is with exactly one doctor.",
+      subs: [
+        ["Identify main entity sets and relationships with cardinalities.", 8, ["patient", "doctor", "appointment", "one-to-many", "many"], "PATIENT and APPOINTMENT have a one-to-many relationship: one patient can have many appointments. DOCTOR and APPOINTMENT also have one-to-many: one doctor can appear in many appointments, but each appointment has one doctor."],
+        ["Suggest relations and keys for this ER model.", 7, ["patient", "doctor", "appointment", "prescription", "primary key", "foreign key"], "PATIENT(PID,...), DOCTOR(DID,...), APPOINTMENT(AppID, PID, DID, DateTime,...) with PID and DID as foreign keys, and PRESCRIPTION(PrescID, AppID, Drug, Dose,...) referencing APPOINTMENT."]
+      ]
+    }
+  ],
+  [
+    {
+      topic: "Index Selection with B+ Tree",
+      caseText: "EMP(EmpID, Dept, Salary, Age) has 1,000,000 records. Queries often search EmpID exactly and Salary ranges such as Salary BETWEEN 50000 AND 70000.",
+      subs: [
+        ["Choose suitable indexes for EmpID and Salary.", 8, ["empid", "hash", "b+ tree", "salary", "range"], "EmpID exact lookup can use a hash index or primary index. Salary range lookup should use a B+ tree because the ordered leaf level supports range scans."],
+        ["Explain why the same index type may not be best for both queries.", 7, ["exact match", "range", "hash", "b+ tree", "ordered"], "Hashing is strong for exact-match queries but does not preserve order. B+ trees support exact lookup and range lookup, but may have slightly more traversal cost for pure exact matches."]
+      ]
+    },
+    {
+      topic: "ER to Relational Schema",
+      caseText: "A company has EMPLOYEE, DEPARTMENT, and PROJECT. Each employee works for one department. Employees can work on many projects, and each project can have many employees.",
+      subs: [
+        ["Describe the ER relationships and cardinalities.", 8, ["employee", "department", "project", "one-to-many", "many-to-many"], "DEPARTMENT to EMPLOYEE is one-to-many. EMPLOYEE to PROJECT is many-to-many through a WORKS_ON relationship."],
+        ["Map the model into relations.", 7, ["employee", "department", "project", "works_on", "foreign key"], "DEPARTMENT(DeptID,...), EMPLOYEE(EmpID,...,DeptID) where DeptID is a foreign key, PROJECT(ProjectID,...), and WORKS_ON(EmpID, ProjectID, Hours) with foreign keys to EMPLOYEE and PROJECT."]
+      ]
+    }
+  ],
+  [
+    {
+      topic: "B+ Tree and File I/O",
+      caseText: "A B+ tree index has height 3. Each node is stored in one disk block. Assume the root is not cached.",
+      subs: [
+        ["Estimate the number of block reads for one exact search.", 8, ["height", "3", "block", "root", "leaf"], "An exact search reads one node per level: root, internal level, and leaf. With height 3 and no cached root, about 3 index block reads are needed, plus possible data block read if the data record is stored separately."],
+        ["Explain why high fan-out reduces search cost.", 7, ["fan-out", "height", "block", "i/o", "children"], "High fan-out means each internal node has many child pointers. More children per node reduce tree height, and lower height means fewer disk I/Os."]
+      ]
+    },
+    {
+      topic: "ER Model with Attributes",
+      caseText: "A cinema database has MOVIE, SCREEN, SHOWTIME, and TICKET. A movie can have many showtimes. A ticket is sold for one showtime and one seat.",
+      subs: [
+        ["Identify entities, relationships, and important attributes.", 8, ["movie", "showtime", "ticket", "screen", "seat"], "Entities include MOVIE, SCREEN, SHOWTIME, and TICKET. SHOWTIME relates MOVIE and SCREEN with time/date attributes. TICKET relates to one SHOWTIME and has seat and price attributes."],
+        ["Map the ER design into relations.", 7, ["movie", "screen", "showtime", "ticket", "foreign key"], "MOVIE(MovieID,...), SCREEN(ScreenID,...), SHOWTIME(ShowID, MovieID, ScreenID, StartTime,...) with foreign keys to MOVIE and SCREEN, and TICKET(TicketID, ShowID, SeatNo, Price,...) referencing SHOWTIME."]
+      ]
+    }
+  ],
+  [
+    {
+      topic: "B+ Tree Deletion",
+      caseText: "A B+ tree entry is deleted from a leaf. After deletion, the leaf has fewer entries than the minimum occupancy requirement.",
+      subs: [
+        ["Describe possible actions after underflow.", 8, ["underflow", "redistribute", "merge", "sibling", "parent"], "The tree can redistribute entries from a sibling if possible. If redistribution is not possible, it merges the leaf with a sibling and updates the parent separator key."],
+        ["Explain why the tree must remain balanced.", 7, ["balanced", "same length", "root-to-leaf", "search", "height"], "A B+ tree keeps all root-to-leaf paths at the same length. This balance guarantees predictable search cost and avoids degeneration into a long chain."]
+      ]
+    },
+    {
+      topic: "ER Generalization",
+      caseText: "A university stores PERSON. STUDENT and INSTRUCTOR are special types of PERSON. All persons have PID and Name; students have Major; instructors have Office.",
+      subs: [
+        ["Explain the ER generalization/specialization.", 8, ["person", "student", "instructor", "superclass", "subclass"], "PERSON is the superclass. STUDENT and INSTRUCTOR are subclasses that inherit PID and Name and add their own attributes such as Major and Office."],
+        ["Give one possible relational mapping.", 7, ["person", "student", "instructor", "primary key", "foreign key"], "One mapping is PERSON(PID, Name), STUDENT(PID, Major), and INSTRUCTOR(PID, Office). STUDENT.PID and INSTRUCTOR.PID are primary keys and foreign keys referencing PERSON."]
+      ]
+    }
+  ],
+  [
+    {
+      topic: "B+ Tree vs Sorted File",
+      caseText: "A sorted file and a B+ tree index are both available for records ordered by AccountNo. The table receives frequent insertions.",
+      subs: [
+        ["Compare insertion cost in sorted files and B+ tree indexes.", 8, ["sorted file", "insertion", "b+ tree", "split", "maintain order"], "A sorted file may require moving records or managing overflow areas to keep order. A B+ tree handles insertions by inserting into a leaf and splitting nodes when needed, while preserving balance."],
+        ["Explain which structure is more flexible for a growing file.", 7, ["b+ tree", "dynamic", "growing", "split", "balanced"], "A B+ tree is more flexible for growth because it dynamically splits nodes and remains balanced. A sorted file can become expensive to maintain with many insertions."]
+      ]
+    },
+    {
+      topic: "ER Relationship Attributes",
+      caseText: "Students enroll in courses. Each enrollment has Semester and Grade. A student can enroll in the same course in different semesters.",
+      subs: [
+        ["Explain why Semester and Grade belong to the relationship.", 8, ["enrollment", "relationship", "semester", "grade", "student course"], "Semester and Grade describe a student's enrollment in a course, not the student alone or the course alone. They are attributes of the ENROLL relationship."],
+        ["Map this into relations and choose a key for ENROLL.", 7, ["student", "course", "enroll", "semester", "primary key"], "Use STUDENT(SID,...), COURSE(CourseID,...), and ENROLL(SID, CourseID, Semester, Grade). Because the same student can repeat a course in different semesters, a suitable key is (SID, CourseID, Semester)."]
+      ]
+    }
+  ],
+  [
+    {
+      topic: "B+ Tree Composite Index",
+      caseText: "A relation ORDER(OrderID, CustomerID, OrderDate, Amount) has a B+ tree index on (CustomerID, OrderDate).",
+      subs: [
+        ["Which queries benefit from this composite B+ tree index?", 8, ["customerid", "orderdate", "composite", "prefix", "range"], "Queries filtering by CustomerID benefit, especially with an OrderDate range for that customer. The index follows the left-prefix rule, so CustomerID alone or CustomerID plus OrderDate can be useful."],
+        ["Explain one query that would not use this index well.", 7, ["orderdate only", "left prefix", "customerid", "not efficient"], "A query filtering only by OrderDate may not use the composite index well because the leading attribute CustomerID is missing. The ordering is primarily by CustomerID, then OrderDate."]
+      ]
+    },
+    {
+      topic: "ER Participation Constraints",
+      caseText: "Every order must be placed by exactly one customer. A customer may have zero or many orders.",
+      subs: [
+        ["Describe the participation and cardinality constraints.", 8, ["order", "customer", "total participation", "one-to-many", "zero or many"], "ORDER has total participation in the PLACED_BY relationship because every order must have a customer. CUSTOMER to ORDER is one-to-many, and a customer may have zero or many orders."],
+        ["Map CUSTOMER and ORDER into relations.", 7, ["customer", "order", "foreign key", "customerid", "not null"], "CUSTOMER(CustomerID, ...). ORDER(OrderID, CustomerID, OrderDate, ...), where ORDER.CustomerID is a non-null foreign key referencing CUSTOMER."]
+      ]
+    }
+  ],
+  [
+    {
+      topic: "B+ Tree and Covering Index",
+      caseText: "SALES(SaleID, StoreID, SaleDate, Amount). Query: SELECT StoreID, SaleDate, Amount FROM SALES WHERE StoreID = 10 AND SaleDate BETWEEN '2026-01-01' AND '2026-01-31'.",
+      subs: [
+        ["Suggest a B+ tree index for this query.", 8, ["storeid", "saledate", "amount", "b+ tree", "range"], "A useful index is on (StoreID, SaleDate), possibly including Amount if the DBMS supports covering indexes. StoreID supports equality filtering and SaleDate supports range scanning inside that store."],
+        ["Explain what a covering index means here.", 7, ["covering index", "all needed attributes", "storeid", "saledate", "amount"], "A covering index contains all attributes needed by the query, so the DBMS can answer using the index without fetching full table records. Here StoreID, SaleDate, and Amount are needed."]
+      ]
+    },
+    {
+      topic: "ER Model to Normalized Tables",
+      caseText: "A supplier database stores SUPPLIER, PART, and SHIPMENT. A supplier can ship many parts, and a part can be shipped by many suppliers. Each shipment has Quantity and ShipDate.",
+      subs: [
+        ["Identify the ER relationship and its attributes.", 8, ["supplier", "part", "shipment", "many-to-many", "quantity", "shipdate"], "SUPPLIER and PART have a many-to-many relationship SHIPMENT. Quantity and ShipDate are attributes of that relationship because they describe a specific supplier-part shipment."],
+        ["Map it into normalized relations.", 7, ["supplier", "part", "shipment", "primary key", "foreign key"], "SUPPLIER(SupplierID,...), PART(PartID,...), and SHIPMENT(SupplierID, PartID, ShipDate, Quantity). SupplierID and PartID are foreign keys; the primary key may include SupplierID, PartID, and ShipDate if multiple shipments over time are allowed."]
+      ]
+    }
+  ],
+  [
+    {
+      topic: "B+ Tree and Hash Index Choice",
+      caseText: "A system has queries: Q1 UserID = 12345, Q2 UserID BETWEEN 10000 AND 20000, Q3 ORDER BY UserID.",
+      subs: [
+        ["Choose between hash index and B+ tree index for these queries.", 8, ["hash", "b+ tree", "exact match", "range", "order by"], "A hash index is good for Q1 exact lookup. A B+ tree is better for Q2 range lookup and Q3 ordered output because it preserves key order."],
+        ["If only one index can be built, which one is safer overall?", 7, ["b+ tree", "exact", "range", "order", "general"], "A B+ tree is safer overall because it supports exact search reasonably well and also supports range queries and ordered scans. Hashing is narrower because it mainly supports exact match."]
+      ]
+    },
+    {
+      topic: "Full ER Design",
+      caseText: "An online store has CUSTOMER, ORDER, PRODUCT, and ORDER_LINE. An order belongs to one customer. An order contains many products, and each product can appear in many orders.",
+      subs: [
+        ["Describe the ER entities and relationships.", 8, ["customer", "order", "product", "order_line", "one-to-many", "many-to-many"], "CUSTOMER to ORDER is one-to-many. ORDER and PRODUCT are many-to-many, resolved by ORDER_LINE. ORDER_LINE represents each product item inside an order."],
+        ["Map the ER model into relations with keys.", 7, ["customer", "order", "product", "order_line", "primary key", "foreign key"], "CUSTOMER(CustomerID,...), ORDER(OrderID, CustomerID,...), PRODUCT(ProductID,...), ORDER_LINE(OrderID, ProductID, Quantity, Price). ORDER.CustomerID references CUSTOMER; ORDER_LINE references ORDER and PRODUCT; (OrderID, ProductID) can be the key if each product appears once per order."]
+      ]
+    }
+  ]
+];
+
 (function enhanceForShortAnswers() {
   const style = document.createElement("style");
   style.textContent = `
@@ -101,6 +284,8 @@ const shortSets = [
     .wrongbook-empty { padding: 18px; background: #fff; border: 1px solid #ddd; }
     .wrongbook-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
     .tag { display: inline-block; border: 1px solid #bbb; padding: 2px 7px; margin-right: 6px; font-size: 12px; background: #fafafa; }
+    .casebox { padding: 12px; background: #fafafa; border: 1px solid #ccc; margin: 8px 0 14px; line-height: 1.5; }
+    .subq { border-top: 1px solid #ddd; padding-top: 12px; margin-top: 12px; }
     .mode-note { font-size: 13px; color: #333; }
   `;
   document.head.appendChild(style);
@@ -111,14 +296,14 @@ const shortSets = [
   sectionLabel.innerHTML = "<b>Section</b>";
   const sectionSelect = document.createElement("select");
   sectionSelect.id = "sectionSelect";
-  sectionSelect.innerHTML = '<option value="mcq">Multiple Choice (20 pts)</option><option value="short">Short Answer (35 pts)</option><option value="wrongbook">Wrong Book 错题本</option>';
+  sectionSelect.innerHTML = '<option value="mcq">Multiple Choice (20 pts)</option><option value="short">Short Answer (35 pts)</option><option value="comp">Comprehensive (15 pts)</option><option value="wrongbook">Wrong Book 错题本</option>';
   panel.insertBefore(sectionSelect, panel.firstChild);
   panel.insertBefore(sectionLabel, panel.firstChild);
   sectionSelect.addEventListener("change", loadSet);
   setSelect.addEventListener("change", loadSet);
 
   document.querySelector("h1").textContent = "Database Systems Mock Exam Practice";
-  document.querySelector("header p").innerHTML = "Choose one of 10 mock sets, then choose <b>Multiple Choice</b> or <b>Short Answer</b>. MCQ is graded exactly. Short answers are scored by keyword match and include model answers for self-checking.";
+  document.querySelector("header p").innerHTML = "Choose one of 10 mock sets, then choose <b>Multiple Choice</b>, <b>Short Answer</b>, or <b>Comprehensive</b>. MCQ is graded exactly. Written answers are scored by keyword match and include detailed explanations for self-checking.";
 })();
 
 const WRONG_BOOK_KEY = "databaseQuizWrongBookV1";
@@ -175,6 +360,25 @@ function manualAddWrong(type, questionIndex) {
     flashManualButton(`add-mcq-${questionIndex}`);
     return;
   }
+  if (type === "comp") {
+    const [bigIndex, subIndex] = String(questionIndex).split("-").map(Number);
+    const big = currentCompSet()[bigIndex];
+    const sub = big.subs[subIndex];
+    addWrongItem({
+      type: "comp",
+      setIndex,
+      questionIndex: `${bigIndex}-${subIndex}`,
+      topic: big.topic,
+      caseText: big.caseText,
+      question: sub[0],
+      points: sub[1],
+      keywords: sub[2],
+      model: sub[3],
+      score: "manual"
+    });
+    flashManualButton(`add-comp-${bigIndex}-${subIndex}`);
+    return;
+  }
   const item = currentShortSet()[questionIndex];
   addWrongItem({
     type: "short",
@@ -224,9 +428,10 @@ function renderWrongBook() {
       `;
     } else {
       section.innerHTML = `
-        <div class="meta"><span class="tag">Short Answer</span><span class="tag">Set ${item.setIndex + 1}</span><span class="tag">Q${item.questionIndex + 1}</span><span class="tag">${escapeHtml(item.topic)}</span><span class="tag">Last score ${item.score}/5</span></div>
+        <div class="meta"><span class="tag">${item.type === "comp" ? "Comprehensive" : "Short Answer"}</span><span class="tag">Set ${item.setIndex + 1}</span><span class="tag">Q${String(item.questionIndex).includes("-") ? item.questionIndex : item.questionIndex + 1}</span><span class="tag">${escapeHtml(item.topic)}</span><span class="tag">Last score ${item.score}/${item.points || 5}</span></div>
         <h2>${escapeHtml(item.question)}</h2>
-        <div class="rubric"><b>English model answer:</b> ${escapeHtml(item.model)}<br><b>中文解析：</b>${escapeHtml(shortChineseExplanation(item.topic, item.keywords))}<br><b>Keywords:</b> ${item.keywords.map(escapeHtml).join(", ")}</div>
+        ${item.caseText ? `<div class="casebox"><b>Case:</b> ${escapeHtml(item.caseText)}</div>` : ""}
+        ${writtenExplanation(item.topic, item.keywords, item.model, item.points || 5)}
         <div class="wrongbook-actions"><button type="button" onclick="removeWrongItem('${item.key}')">Remove</button></div>
       `;
     }
@@ -436,12 +641,22 @@ function shortChineseExplanation(topic, keywords) {
   return `${zh} 作答时应覆盖这些关键词或同义表达：${keywords.join("，")}。如果答案只写结论但没有解释作用、条件或例子，通常不能拿满分。`;
 }
 
+function writtenExplanation(topic, keywords, model, points) {
+  const [en, zh] = topicExplanation(topic);
+  const pointText = points ? `${points} points` : "full points";
+  return `<div class="rubric"><b>Answering approach:</b> First identify the topic (${escapeHtml(topic)}), then state the key definition/rule, apply it to the case or question, and give a short justification. For ${escapeHtml(pointText)}, do not only write isolated keywords; connect them into a clear explanation.<br><b>Key scoring points:</b> ${keywords.map(escapeHtml).join(", ")}<br><b>English model answer:</b> ${escapeHtml(model)}<br><b>中文解析：</b>${escapeHtml(zh)} 本题答题时要先点明考点，再把关键词用于题目场景。得分点包括：${escapeHtml(keywords.join("，"))}。只背概念但不结合题干，通常会丢应用分析分。</div>`;
+}
+
 function activeMode() {
   return document.getElementById("sectionSelect")?.value || "mcq";
 }
 
 function currentShortSet() {
   return shortSets[Number(setSelect.value)];
+}
+
+function currentCompSet() {
+  return compSets[Number(setSelect.value)];
 }
 
 const originalCurrentSet = currentSet;
@@ -470,6 +685,28 @@ loadSet = function() {
         </div>
         <div class="wrongbook-actions"><button type="button" id="add-mcq-${idx}" onclick="manualAddWrong('mcq', ${idx})">Add to Wrong Book</button></div>
         <div class="feedback" id="f${idx}"></div>
+      `;
+      quiz.appendChild(section);
+    });
+    return;
+  }
+
+  if (activeMode() === "comp") {
+    currentCompSet().forEach((big, bigIdx) => {
+      const section = document.createElement("section");
+      section.className = "question";
+      section.innerHTML = `
+        <div class="meta">Set ${Number(setSelect.value) + 1} · Comprehensive Question ${bigIdx + 1} · ${escapeHtml(big.topic)} · 15 points</div>
+        <h2>${escapeHtml(big.topic)}</h2>
+        <div class="casebox"><b>Case:</b> ${escapeHtml(big.caseText)}</div>
+        ${big.subs.map((sub, subIdx) => `
+          <div class="subq">
+            <h2>${bigIdx + 1}.${subIdx + 1} (${sub[1]} pts) ${escapeHtml(sub[0])}</h2>
+            <textarea name="comp${bigIdx}_${subIdx}" placeholder="Type your answer in English..."></textarea>
+            <div class="wrongbook-actions"><button type="button" id="add-comp-${bigIdx}-${subIdx}" onclick="manualAddWrong('comp', '${bigIdx}-${subIdx}')">Add to Wrong Book</button></div>
+            <div class="feedback" id="fc${bigIdx}_${subIdx}"></div>
+          </div>
+        `).join("")}
       `;
       quiz.appendChild(section);
     });
@@ -522,6 +759,40 @@ grade = function() {
     return;
   }
 
+  if (activeMode() === "comp") {
+    let total = 0;
+    currentCompSet().forEach((big, bigIdx) => {
+      big.subs.forEach((sub, subIdx) => {
+        const [question, points, keywords, model] = sub;
+        const answerText = (document.querySelector(`textarea[name="comp${bigIdx}_${subIdx}"]`)?.value || "").toLowerCase();
+        const hits = keywords.filter(k => answerText.includes(k.toLowerCase())).length;
+        const score = Math.min(points, Math.round((hits / keywords.length) * points));
+        total += score;
+        if (score < points) {
+          addWrongItem({
+            type: "comp",
+            setIndex: Number(setSelect.value),
+            questionIndex: `${bigIdx}-${subIdx}`,
+            topic: big.topic,
+            caseText: big.caseText,
+            question,
+            points,
+            keywords,
+            model,
+            score
+          });
+        } else {
+          removeWrongIfMastered("comp", Number(setSelect.value), `${bigIdx}-${subIdx}`);
+        }
+        const fb = document.getElementById(`fc${bigIdx}_${subIdx}`);
+        fb.className = "feedback";
+        fb.innerHTML = `<div>Estimated score: ${score} / ${points}. Matched keywords: ${hits}/${keywords.length}.</div>${writtenExplanation(big.topic, keywords, model, points)}`;
+      });
+    });
+    document.getElementById("score").textContent = `Comprehensive Score: ${total} / 30`;
+    return;
+  }
+
   let total = 0;
   currentShortSet().forEach((item, idx) => {
     const keywords = item[2];
@@ -546,7 +817,7 @@ grade = function() {
     }
     const fb = document.getElementById(`f${idx}`);
     fb.className = "feedback";
-    fb.innerHTML = `<div>Estimated score: ${score} / 5. Matched keywords: ${hits}/${keywords.length}.</div><div class="rubric"><b>English model answer:</b> ${escapeHtml(model)}<br><b>中文解析：</b>${escapeHtml(shortChineseExplanation(item[0], keywords))}<br><b>Keywords:</b> ${keywords.map(escapeHtml).join(", ")}</div>`;
+    fb.innerHTML = `<div>Estimated score: ${score} / 5. Matched keywords: ${hits}/${keywords.length}.</div>${writtenExplanation(item[0], keywords, model, 5)}`;
   });
   document.getElementById("score").textContent = `Short Answer Score: ${total} / 35`;
 };
@@ -567,11 +838,23 @@ showAnswers = function() {
     });
     return;
   }
+  if (activeMode() === "comp") {
+    currentCompSet().forEach((big, bigIdx) => {
+      big.subs.forEach((sub, subIdx) => {
+        const fb = document.getElementById(`fc${bigIdx}_${subIdx}`);
+        if (fb) {
+          fb.className = "feedback";
+          fb.innerHTML = writtenExplanation(big.topic, sub[2], sub[3], sub[1]);
+        }
+      });
+    });
+    return;
+  }
   currentShortSet().forEach((item, idx) => {
     const fb = document.getElementById(`f${idx}`);
     if (fb) {
       fb.className = "feedback";
-      fb.innerHTML = `<div class="rubric"><b>English model answer:</b> ${escapeHtml(item[3])}<br><b>中文解析：</b>${escapeHtml(shortChineseExplanation(item[0], item[2]))}<br><b>Keywords:</b> ${item[2].map(escapeHtml).join(", ")}</div>`;
+      fb.innerHTML = writtenExplanation(item[0], item[2], item[3], 5);
     }
   });
 };
