@@ -147,6 +147,48 @@ function addWrongItem(item) {
   saveWrongBook(next.slice(0, 200));
 }
 
+function flashManualButton(buttonId) {
+  const btn = document.getElementById(buttonId);
+  if (!btn) return;
+  const old = btn.textContent;
+  btn.textContent = "Added to Wrong Book";
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = old;
+    btn.disabled = false;
+  }, 1200);
+}
+
+function manualAddWrong(type, questionIndex) {
+  const setIndex = Number(setSelect.value);
+  if (type === "mcq") {
+    const item = displayedMcqItem(originalCurrentSet()[questionIndex], questionIndex);
+    addWrongItem({
+      type: "mcq",
+      setIndex,
+      questionIndex,
+      topic: item[0],
+      question: item[1],
+      options: item[2],
+      answer: item[3]
+    });
+    flashManualButton(`add-mcq-${questionIndex}`);
+    return;
+  }
+  const item = currentShortSet()[questionIndex];
+  addWrongItem({
+    type: "short",
+    setIndex,
+    questionIndex,
+    topic: item[0],
+    question: item[1],
+    keywords: item[2],
+    model: item[3],
+    score: "manual"
+  });
+  flashManualButton(`add-short-${questionIndex}`);
+}
+
 function removeWrongIfMastered(type, setIndex, questionIndex) {
   const key = wrongKey(type, setIndex, questionIndex);
   saveWrongBook(wrongBookItems().filter(item => item.key !== key));
@@ -387,6 +429,7 @@ loadSet = function() {
             <label><input type="radio" name="q${idx}" value="${i}"> ${letters[i]}. ${escapeHtml(op)}</label>
           `).join("")}
         </div>
+        <div class="wrongbook-actions"><button type="button" id="add-mcq-${idx}" onclick="manualAddWrong('mcq', ${idx})">Add to Wrong Book</button></div>
         <div class="feedback" id="f${idx}"></div>
       `;
       quiz.appendChild(section);
@@ -402,6 +445,7 @@ loadSet = function() {
       <div class="meta">Set ${Number(setSelect.value) + 1} · Short Answer ${idx + 1} · ${topic} · 5 points</div>
       <h2>${escapeHtml(question)}</h2>
       <textarea name="sa${idx}" placeholder="Type your answer in English..."></textarea>
+      <div class="wrongbook-actions"><button type="button" id="add-short-${idx}" onclick="manualAddWrong('short', ${idx})">Add to Wrong Book</button></div>
       <div class="feedback" id="f${idx}"></div>
     `;
     quiz.appendChild(section);
