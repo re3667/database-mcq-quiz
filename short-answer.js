@@ -385,11 +385,50 @@ function displayedMcqItem(item, questionIndex) {
   return [topic, question, displayedOptions, displayedAnswer];
 }
 
+function wrongOptionReason(optionText, topic) {
+  const lower = optionText.toLowerCase();
+  if (/\balways\b|\bonly\b|\bnever\b|\ball\b|\bno\b/.test(lower)) {
+    return "This option is too absolute or too narrow for this concept. Database rules usually depend on the model, constraint, access path, or transaction context.";
+  }
+  if (lower.includes("unrelated") || lower.includes("random")) {
+    return "This option does not describe the database concept being tested by the question.";
+  }
+  if (topic.includes("SQL") && !/(where|having|group|select|count|order|query|subquery|null|update|distinct|foreign)/i.test(optionText)) {
+    return "This option is not the SQL clause or SQL behavior required by the question.";
+  }
+  if (topic.includes("B+") && !/(tree|leaf|root|node|split|height|fan|range|key|pointer)/i.test(optionText)) {
+    return "This option describes another database topic, not the B+ tree index rule in the question.";
+  }
+  if (topic.includes("Hash") && !/(hash|bucket|exact|collision|overflow|directory|split|range|key)/i.test(optionText)) {
+    return "This option is not about how hash indexes map keys to buckets.";
+  }
+  if (topic.includes("Transaction") && !/(transaction|acid|atomic|commit|rollback|durability|isolation|schedule|log|failure)/i.test(optionText)) {
+    return "This option belongs to another part of the course, not transaction processing.";
+  }
+  if (topic.includes("Lock") || topic.includes("Concurrency")) {
+    if (!/(lock|serial|schedule|conflict|read|write|transaction|deadlock|phase|shared|exclusive)/i.test(optionText)) {
+      return "This option does not explain the concurrency-control rule being tested.";
+    }
+  }
+  if (topic.includes("Normalization") || topic.includes("2NF") || topic.includes("3NF") || topic.includes("BCNF")) {
+    if (!/(dependency|key|attribute|normal|anomal|superkey|prime|lossless|decompos)/i.test(optionText)) {
+      return "This option is not about functional dependencies or normalization rules.";
+    }
+  }
+  return "This option does not match the exact definition or rule asked in the question. It may mention a related database idea, but it answers a different question.";
+}
+
 function mcqExplanation(item) {
   const [topic, question, options, answer] = item;
   const [en, zh] = topicExplanation(topic);
   const correct = `${letters[answer]}. ${options[answer]}`;
-  return `<div class="explanation"><b>Correct answer:</b> ${escapeHtml(correct)}<br><b>English explanation:</b> ${escapeHtml(en)} The correct option matches the definition or rule asked in this question: "${escapeHtml(question)}". The other options describe unrelated concepts, reverse the rule, or make the statement too absolute.<br><b>中文解析：</b>${escapeHtml(zh)} 本题题干问的是：“${escapeHtml(question)}”。正确选项符合该概念的定义或规则；其他选项通常是无关概念、把规则说反，或表述过于绝对。</div>`;
+  const optionRows = options.map((option, idx) => {
+    if (idx === answer) {
+      return `<li><b>${letters[idx]}.</b> ${escapeHtml(option)}<br><b>Why it is correct:</b> This directly answers the question focus and matches the course rule for ${escapeHtml(topic)}.<br><b>为什么对：</b>该选项直接回应题干考点，符合 ${escapeHtml(topic)} 这一部分的定义或规则。</li>`;
+    }
+    return `<li><b>${letters[idx]}.</b> ${escapeHtml(option)}<br><b>Why it is wrong:</b> ${escapeHtml(wrongOptionReason(option, topic))}<br><b>为什么错：</b>这个选项没有准确回答题干要求，通常是概念不对应、条件说反、范围过大/过小，或把其他章节的知识点混进来了。</li>`;
+  }).join("");
+  return `<div class="explanation"><b>Correct answer:</b> ${escapeHtml(correct)}<br><b>Question focus:</b> ${escapeHtml(question)}<br><b>English explanation:</b> ${escapeHtml(en)} The correct option matches the exact definition, condition, or use case asked by the question.<br><b>中文解析：</b>${escapeHtml(zh)} 本题要先判断题干考的是定义、条件还是应用场景，再排除与该考点不匹配的选项。<br><b>Option analysis / 选项讲解：</b><ol>${optionRows}</ol></div>`;
 }
 
 function shortChineseExplanation(topic, keywords) {
