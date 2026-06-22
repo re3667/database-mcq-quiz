@@ -96,6 +96,8 @@ const shortSets = [
   style.textContent = `
     textarea { width: 100%; min-height: 110px; box-sizing: border-box; font: inherit; padding: 10px; border: 1px solid #aaa; }
     .rubric { margin-top: 8px; padding: 10px; background: #f7f7f7; border: 1px solid #ddd; line-height: 1.45; }
+    .explanation { margin-top: 8px; padding: 10px; background: #f7f7f7; border: 1px solid #ddd; line-height: 1.5; font-weight: normal; }
+    .explanation b { font-weight: 700; }
     .mode-note { font-size: 13px; color: #333; }
   `;
   document.head.appendChild(style);
@@ -115,6 +117,148 @@ const shortSets = [
   document.querySelector("h1").textContent = "Database Systems Mock Exam Practice";
   document.querySelector("header p").innerHTML = "Choose one of 10 mock sets, then choose <b>Multiple Choice</b> or <b>Short Answer</b>. MCQ is graded exactly. Short answers are scored by keyword match and include model answers for self-checking.";
 })();
+
+const topicNotes = {
+  "Why Databases": [
+    "This question tests why DBMSs are used: they reduce uncontrolled redundancy, support shared access, query processing, integrity, security, and recovery.",
+    "本题考查为什么使用数据库管理系统：DBMS 可以减少无控制冗余，支持共享访问、查询处理、完整性、安全性和故障恢复。"
+  ],
+  "Database basics": [
+    "A DBMS is not just a storage file. It manages data definition, querying, updates, constraints, concurrency, recovery, and security.",
+    "DBMS 不只是存文件，而是负责数据定义、查询、更新、约束、并发、恢复和安全控制。"
+  ],
+  "Relational Model": [
+    "The relational model organizes data as relations. Important ideas include tuples, attributes, domains, keys, foreign keys, and integrity constraints.",
+    "关系模型把数据组织成关系表，核心概念包括元组、属性、域、键、外键和完整性约束。"
+  ],
+  "Data models": [
+    "The three-schema architecture separates user views, the conceptual logical design, and internal physical storage to support data independence.",
+    "三级模式结构把用户视图、概念逻辑结构和内部物理存储分开，用来支持数据独立性。"
+  ],
+  "Schemas and Views": [
+    "Schemas and views separate what users see from how data is logically and physically stored. Views can simplify queries and support security.",
+    "模式和视图把用户看到的数据与逻辑/物理存储分开。视图可以简化查询，也可以用于权限和安全控制。"
+  ],
+  "Schemas": [
+    "Schema questions usually focus on data independence: applications should not change just because storage details change.",
+    "模式相关题通常考数据独立性：存储细节变化时，应用程序不应被迫大改。"
+  ],
+  "Views": [
+    "A view is a query-defined representation. It may hide columns or rows, simplify repeated queries, and sometimes creates update ambiguity.",
+    "视图是由查询定义出来的表示，可以隐藏列或行、简化重复查询，但有时会带来更新歧义。"
+  ],
+  "Relational Algebra": [
+    "Relational algebra is a formal query language. Selection filters rows; projection keeps columns; joins combine related tuples.",
+    "关系代数是形式化查询语言。选择筛选行，投影保留列，连接把相关元组组合起来。"
+  ],
+  "SQL": [
+    "SQL questions often test the logical order of query processing: WHERE filters rows before grouping, while HAVING filters groups after aggregation.",
+    "SQL 常考查询逻辑顺序：WHERE 在分组前筛选行，HAVING 在分组和聚合后筛选组。"
+  ],
+  "JDBC": [
+    "JDBC connects Java programs to databases through Connection, Statement or PreparedStatement, ResultSet, and proper resource closing.",
+    "JDBC 通过 Connection、Statement/PreparedStatement、ResultSet 等对象让 Java 程序访问数据库，并且要及时关闭资源。"
+  ],
+  "ER Model": [
+    "ER modeling describes entities, attributes, relationships, cardinality, participation, weak entities, and mapping rules into relations.",
+    "ER 模型描述实体、属性、联系、基数、参与约束、弱实体，以及如何映射成关系表。"
+  ],
+  "ER Mapping": [
+    "ER-to-relational mapping turns entity sets and relationships into tables, usually using primary keys and foreign keys.",
+    "ER 到关系模型的映射会把实体集和联系转换成表，通常依靠主键和外键表达关联。"
+  ],
+  "Normalization": [
+    "Normalization uses functional dependencies to reduce redundancy and avoid insertion, update, and deletion anomalies.",
+    "规范化利用函数依赖来减少冗余，避免插入异常、更新异常和删除异常。"
+  ],
+  "2NF": [
+    "Second Normal Form removes partial dependencies of non-prime attributes on only part of a composite candidate key.",
+    "第二范式消除非主属性对复合候选键一部分的部分依赖。"
+  ],
+  "3NF": [
+    "Third Normal Form reduces transitive dependency problems while preserving a practical balance between normalization and dependency preservation.",
+    "第三范式主要减少传递依赖问题，同时在规范化和依赖保持之间取得实用平衡。"
+  ],
+  "3NF/BCNF": [
+    "BCNF is stricter than 3NF: every non-trivial determinant must be a superkey. 3NF has limited exceptions for prime attributes.",
+    "BCNF 比 3NF 更严格：每个非平凡函数依赖的决定因素都必须是超键。3NF 对主属性有一定例外。"
+  ],
+  "BCNF": [
+    "BCNF checks every non-trivial functional dependency X -> Y and requires X to be a superkey.",
+    "BCNF 检查每个非平凡函数依赖 X -> Y，并要求 X 必须是超键。"
+  ],
+  "Files": [
+    "File organization questions focus on records, blocks, disk I/O, blocking factor, record pointers, and free-space management.",
+    "文件组织题关注记录、磁盘块、磁盘 I/O、块因子、记录指针和空闲空间管理。"
+  ],
+  "File Organization": [
+    "Heap, sorted, and hashed files support different access patterns. Heap files insert easily; sorted files help range scans; hashed files help exact match.",
+    "堆文件、排序文件和哈希文件适合不同访问模式：堆文件便于插入，排序文件便于范围扫描，哈希文件便于等值查找。"
+  ],
+  "Secondary Indexes": [
+    "A secondary index is an auxiliary access path on an attribute that is not necessarily the file ordering key. It speeds search but adds update cost.",
+    "辅助索引是在不一定作为文件排序键的属性上建立的访问路径。它能加速查询，但会增加更新维护成本。"
+  ],
+  "Indexing": [
+    "Indexes trade extra storage and maintenance cost for faster lookup. Dense, sparse, primary, secondary, and clustering indexes differ by entries and ordering.",
+    "索引用额外存储和维护成本换取更快查找。稠密、稀疏、主索引、辅助索引和聚簇索引的区别在于索引项数量和物理排序关系。"
+  ],
+  "Dense Index": [
+    "A dense index has an entry for every search-key value or record, so it is easy to find records but may require more space.",
+    "稠密索引为每个搜索键值或每条记录建立索引项，查找方便但占用空间较多。"
+  ],
+  "Sparse Index": [
+    "A sparse index has fewer entries and is usually possible when the data file is ordered on the search key.",
+    "稀疏索引的索引项更少，通常要求数据文件按搜索键有序。"
+  ],
+  "B+ Trees": [
+    "B+ trees are balanced multi-level indexes. High fan-out reduces height, and linked leaves support efficient range search.",
+    "B+ 树是平衡的多级索引。高扇出降低树高，叶子节点链表支持高效范围查询。"
+  ],
+  "Hashing": [
+    "Hashing maps a search key to a bucket. It is strong for exact-match queries but weak for range queries because key order is not preserved.",
+    "哈希把搜索键映射到桶，适合等值查询；由于不保持键的顺序，不适合范围查询。"
+  ],
+  "Transactions": [
+    "Transaction questions usually test ACID: atomicity, consistency, isolation, and durability, plus commit, rollback, and logging.",
+    "事务题通常考 ACID：原子性、一致性、隔离性和持久性，以及提交、回滚和日志。"
+  ],
+  "Recovery": [
+    "Recovery uses logs to undo uncommitted changes and redo committed changes after failures.",
+    "恢复机制利用日志在故障后撤销未提交修改、重做已提交修改。"
+  ],
+  "Concurrency": [
+    "Concurrency control checks whether interleaved transactions are still correct, often using serializability, conflict graphs, and recoverability.",
+    "并发控制判断交错执行的事务是否仍然正确，常用可串行化、冲突图和可恢复性分析。"
+  ],
+  "Locking": [
+    "Locking controls concurrent access. Shared locks are for reads, exclusive locks are for writes, and two-phase locking helps guarantee serializability.",
+    "锁用于控制并发访问。共享锁用于读，排他锁用于写，两段锁协议有助于保证可串行化。"
+  ],
+  "2PL": [
+    "Strict two-phase locking holds important locks until commit or abort, preventing dirty reads and helping recovery.",
+    "严格两段锁会把关键锁保持到提交或回滚，防止脏读，并帮助恢复。"
+  ]
+};
+
+function topicExplanation(topic) {
+  return topicNotes[topic] || [
+    "This question checks a core database concept. Focus on the definition, when it is used, and what problem it solves.",
+    "本题考查数据库核心概念。复习时要抓住定义、使用场景，以及它解决的问题。"
+  ];
+}
+
+function mcqExplanation(item) {
+  const [topic, question, options, answer] = item;
+  const [en, zh] = topicExplanation(topic);
+  const correct = `${letters[answer]}. ${options[answer]}`;
+  return `<div class="explanation"><b>Correct answer:</b> ${escapeHtml(correct)}<br><b>English explanation:</b> ${escapeHtml(en)} The correct option matches the definition or rule asked in this question: "${escapeHtml(question)}". The other options describe unrelated concepts, reverse the rule, or make the statement too absolute.<br><b>中文解析：</b>${escapeHtml(zh)} 本题题干问的是：“${escapeHtml(question)}”。正确选项符合该概念的定义或规则；其他选项通常是无关概念、把规则说反，或表述过于绝对。</div>`;
+}
+
+function shortChineseExplanation(topic, keywords) {
+  const [, zh] = topicExplanation(topic);
+  return `${zh} 作答时应覆盖这些关键词或同义表达：${keywords.join("，")}。如果答案只写结论但没有解释作用、条件或例子，通常不能拿满分。`;
+}
 
 function activeMode() {
   return document.getElementById("sectionSelect")?.value || "mcq";
@@ -173,10 +317,10 @@ grade = function() {
       const fb = document.getElementById(`f${idx}`);
       if (selected && Number(selected.value) === answer) {
         score += 1;
-        fb.textContent = "Correct.";
+        fb.innerHTML = `Correct.${mcqExplanation(item)}`;
         fb.className = "feedback correct";
       } else {
-        fb.textContent = `Wrong. Correct answer: ${letters[answer]}. ${item[2][answer]}`;
+        fb.innerHTML = `Wrong.${mcqExplanation(item)}`;
         fb.className = "feedback wrong";
       }
     });
@@ -194,7 +338,7 @@ grade = function() {
     total += score;
     const fb = document.getElementById(`f${idx}`);
     fb.className = "feedback";
-    fb.innerHTML = `<div>Estimated score: ${score} / 5. Matched keywords: ${hits}/${keywords.length}.</div><div class="rubric"><b>Model answer:</b> ${escapeHtml(model)}<br><b>Keywords:</b> ${keywords.map(escapeHtml).join(", ")}</div>`;
+    fb.innerHTML = `<div>Estimated score: ${score} / 5. Matched keywords: ${hits}/${keywords.length}.</div><div class="rubric"><b>English model answer:</b> ${escapeHtml(model)}<br><b>中文解析：</b>${escapeHtml(shortChineseExplanation(item[0], keywords))}<br><b>Keywords:</b> ${keywords.map(escapeHtml).join(", ")}</div>`;
   });
   document.getElementById("score").textContent = `Short Answer Score: ${total} / 35`;
 };
@@ -205,7 +349,7 @@ showAnswers = function() {
       const answer = item[3];
       const fb = document.getElementById(`f${idx}`);
       if (fb) {
-        fb.textContent = `Answer: ${letters[answer]}. ${item[2][answer]}`;
+        fb.innerHTML = mcqExplanation(item);
         fb.className = "feedback";
       }
     });
@@ -215,7 +359,7 @@ showAnswers = function() {
     const fb = document.getElementById(`f${idx}`);
     if (fb) {
       fb.className = "feedback";
-      fb.innerHTML = `<div class="rubric"><b>Model answer:</b> ${escapeHtml(item[3])}<br><b>Keywords:</b> ${item[2].map(escapeHtml).join(", ")}</div>`;
+      fb.innerHTML = `<div class="rubric"><b>English model answer:</b> ${escapeHtml(item[3])}<br><b>中文解析：</b>${escapeHtml(shortChineseExplanation(item[0], item[2]))}<br><b>Keywords:</b> ${item[2].map(escapeHtml).join(", ")}</div>`;
     }
   });
 };
