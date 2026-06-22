@@ -98,6 +98,9 @@ const shortSets = [
     .rubric { margin-top: 8px; padding: 10px; background: #f7f7f7; border: 1px solid #ddd; line-height: 1.45; }
     .explanation { margin-top: 8px; padding: 10px; background: #f7f7f7; border: 1px solid #ddd; line-height: 1.5; font-weight: normal; }
     .explanation b { font-weight: 700; }
+    .wrongbook-empty { padding: 18px; background: #fff; border: 1px solid #ddd; }
+    .wrongbook-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+    .tag { display: inline-block; border: 1px solid #bbb; padding: 2px 7px; margin-right: 6px; font-size: 12px; background: #fafafa; }
     .mode-note { font-size: 13px; color: #333; }
   `;
   document.head.appendChild(style);
@@ -108,7 +111,7 @@ const shortSets = [
   sectionLabel.innerHTML = "<b>Section</b>";
   const sectionSelect = document.createElement("select");
   sectionSelect.id = "sectionSelect";
-  sectionSelect.innerHTML = '<option value="mcq">Multiple Choice (20 pts)</option><option value="short">Short Answer (35 pts)</option>';
+  sectionSelect.innerHTML = '<option value="mcq">Multiple Choice (20 pts)</option><option value="short">Short Answer (35 pts)</option><option value="wrongbook">Wrong Book 错题本</option>';
   panel.insertBefore(sectionSelect, panel.firstChild);
   panel.insertBefore(sectionLabel, panel.firstChild);
   sectionSelect.addEventListener("change", loadSet);
@@ -117,6 +120,89 @@ const shortSets = [
   document.querySelector("h1").textContent = "Database Systems Mock Exam Practice";
   document.querySelector("header p").innerHTML = "Choose one of 10 mock sets, then choose <b>Multiple Choice</b> or <b>Short Answer</b>. MCQ is graded exactly. Short answers are scored by keyword match and include model answers for self-checking.";
 })();
+
+const WRONG_BOOK_KEY = "databaseQuizWrongBookV1";
+
+function wrongBookItems() {
+  try {
+    return JSON.parse(localStorage.getItem(WRONG_BOOK_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveWrongBook(items) {
+  localStorage.setItem(WRONG_BOOK_KEY, JSON.stringify(items));
+}
+
+function wrongKey(type, setIndex, questionIndex) {
+  return `${type}:${setIndex}:${questionIndex}`;
+}
+
+function addWrongItem(item) {
+  const items = wrongBookItems();
+  const key = wrongKey(item.type, item.setIndex, item.questionIndex);
+  const next = items.filter(existing => existing.key !== key);
+  next.unshift({ ...item, key, savedAt: new Date().toISOString() });
+  saveWrongBook(next.slice(0, 200));
+}
+
+function removeWrongIfMastered(type, setIndex, questionIndex) {
+  const key = wrongKey(type, setIndex, questionIndex);
+  saveWrongBook(wrongBookItems().filter(item => item.key !== key));
+}
+
+function renderWrongBook() {
+  const quiz = document.getElementById("quiz");
+  const items = wrongBookItems();
+  document.getElementById("score").textContent = `Wrong Book: ${items.length} item${items.length === 1 ? "" : "s"}`;
+  if (!items.length) {
+    quiz.innerHTML = '<div class="wrongbook-empty"><b>No wrong questions yet.</b><p>Submit an MCQ set or Short Answer set first. Wrong MCQs and short answers below full score will be saved here automatically.</p></div>';
+    return;
+  }
+  quiz.innerHTML = `
+    <section class="question">
+      <h2>Wrong Book 错题本</h2>
+      <p>This list is saved in this browser. Correctly answered MCQs are removed automatically when you submit that set again. You can also remove items manually.</p>
+      <div class="wrongbook-actions">
+        <button type="button" onclick="clearWrongBook()">Clear Wrong Book</button>
+      </div>
+    </section>
+  `;
+  items.forEach((item, idx) => {
+    const section = document.createElement("section");
+    section.className = "question";
+    if (item.type === "mcq") {
+      section.innerHTML = `
+        <div class="meta"><span class="tag">MCQ</span><span class="tag">Set ${item.setIndex + 1}</span><span class="tag">Q${item.questionIndex + 1}</span><span class="tag">${escapeHtml(item.topic)}</span></div>
+        <h2>${escapeHtml(item.question)}</h2>
+        <div>${item.options.map((op, i) => `<p>${letters[i]}. ${escapeHtml(op)}</p>`).join("")}</div>
+        ${mcqExplanation([item.topic, item.question, item.options, item.answer])}
+        <div class="wrongbook-actions"><button type="button" onclick="removeWrongItem('${item.key}')">Remove</button></div>
+      `;
+    } else {
+      section.innerHTML = `
+        <div class="meta"><span class="tag">Short Answer</span><span class="tag">Set ${item.setIndex + 1}</span><span class="tag">Q${item.questionIndex + 1}</span><span class="tag">${escapeHtml(item.topic)}</span><span class="tag">Last score ${item.score}/5</span></div>
+        <h2>${escapeHtml(item.question)}</h2>
+        <div class="rubric"><b>English model answer:</b> ${escapeHtml(item.model)}<br><b>中文解析：</b>${escapeHtml(shortChineseExplanation(item.topic, item.keywords))}<br><b>Keywords:</b> ${item.keywords.map(escapeHtml).join(", ")}</div>
+        <div class="wrongbook-actions"><button type="button" onclick="removeWrongItem('${item.key}')">Remove</button></div>
+      `;
+    }
+    quiz.appendChild(section);
+  });
+}
+
+function removeWrongItem(key) {
+  saveWrongBook(wrongBookItems().filter(item => item.key !== key));
+  renderWrongBook();
+}
+
+function clearWrongBook() {
+  if (confirm("Clear all wrong questions?")) {
+    saveWrongBook([]);
+    renderWrongBook();
+  }
+}
 
 const topicNotes = {
   "Why Databases": [
@@ -248,6 +334,15 @@ function topicExplanation(topic) {
   ];
 }
 
+function displayedMcqItem(item, questionIndex) {
+  const [topic, question, options, answer] = item;
+  const setIndex = Number(setSelect.value);
+  const shift = (setIndex * 2 + questionIndex * 3 + 1) % options.length;
+  const displayedOptions = options.slice(shift).concat(options.slice(0, shift));
+  const displayedAnswer = (answer - shift + options.length) % options.length;
+  return [topic, question, displayedOptions, displayedAnswer];
+}
+
 function mcqExplanation(item) {
   const [topic, question, options, answer] = item;
   const [en, zh] = topicExplanation(topic);
@@ -274,9 +369,14 @@ loadSet = function() {
   const quiz = document.getElementById("quiz");
   quiz.innerHTML = "";
   document.getElementById("score").textContent = "";
+  if (activeMode() === "wrongbook") {
+    renderWrongBook();
+    return;
+  }
   if (activeMode() === "mcq") {
     originalCurrentSet().forEach((item, idx) => {
-      const [topic, question, options] = item;
+      const displayItem = displayedMcqItem(item, idx);
+      const [topic, question, options] = displayItem;
       const section = document.createElement("section");
       section.className = "question";
       section.innerHTML = `
@@ -312,15 +412,26 @@ grade = function() {
   if (activeMode() === "mcq") {
     let score = 0;
     originalCurrentSet().forEach((item, idx) => {
-      const answer = item[3];
+      const displayItem = displayedMcqItem(item, idx);
+      const answer = displayItem[3];
       const selected = document.querySelector(`input[name="q${idx}"]:checked`);
       const fb = document.getElementById(`f${idx}`);
       if (selected && Number(selected.value) === answer) {
         score += 1;
-        fb.innerHTML = `Correct.${mcqExplanation(item)}`;
+        removeWrongIfMastered("mcq", Number(setSelect.value), idx);
+        fb.innerHTML = `Correct.${mcqExplanation(displayItem)}`;
         fb.className = "feedback correct";
       } else {
-        fb.innerHTML = `Wrong.${mcqExplanation(item)}`;
+        addWrongItem({
+          type: "mcq",
+          setIndex: Number(setSelect.value),
+          questionIndex: idx,
+          topic: displayItem[0],
+          question: displayItem[1],
+          options: displayItem[2],
+          answer
+        });
+        fb.innerHTML = `Wrong.${mcqExplanation(displayItem)}`;
         fb.className = "feedback wrong";
       }
     });
@@ -336,6 +447,20 @@ grade = function() {
     const hits = keywords.filter(k => answerText.includes(k.toLowerCase())).length;
     const score = Math.min(5, Math.round((hits / keywords.length) * 5));
     total += score;
+    if (score < 5) {
+      addWrongItem({
+        type: "short",
+        setIndex: Number(setSelect.value),
+        questionIndex: idx,
+        topic: item[0],
+        question: item[1],
+        keywords,
+        model,
+        score
+      });
+    } else {
+      removeWrongIfMastered("short", Number(setSelect.value), idx);
+    }
     const fb = document.getElementById(`f${idx}`);
     fb.className = "feedback";
     fb.innerHTML = `<div>Estimated score: ${score} / 5. Matched keywords: ${hits}/${keywords.length}.</div><div class="rubric"><b>English model answer:</b> ${escapeHtml(model)}<br><b>中文解析：</b>${escapeHtml(shortChineseExplanation(item[0], keywords))}<br><b>Keywords:</b> ${keywords.map(escapeHtml).join(", ")}</div>`;
@@ -344,12 +469,16 @@ grade = function() {
 };
 
 showAnswers = function() {
+  if (activeMode() === "wrongbook") {
+    renderWrongBook();
+    return;
+  }
   if (activeMode() === "mcq") {
     originalCurrentSet().forEach((item, idx) => {
-      const answer = item[3];
+      const displayItem = displayedMcqItem(item, idx);
       const fb = document.getElementById(`f${idx}`);
       if (fb) {
-        fb.innerHTML = mcqExplanation(item);
+        fb.innerHTML = mcqExplanation(displayItem);
         fb.className = "feedback";
       }
     });
