@@ -110,6 +110,7 @@ const shortSets = [
   panel.insertBefore(sectionSelect, panel.firstChild);
   panel.insertBefore(sectionLabel, panel.firstChild);
   sectionSelect.addEventListener("change", loadSet);
+  setSelect.addEventListener("change", loadSet);
 
   document.querySelector("h1").textContent = "Database Systems Mock Exam Practice";
   document.querySelector("header p").innerHTML = "Choose one of 10 mock sets, then choose <b>Multiple Choice</b> or <b>Short Answer</b>. MCQ is graded exactly. Short answers are scored by keyword match and include model answers for self-checking.";
